@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QueuePro — Smart College Queue System</title>
+  <meta name="description" content="QueuePro eliminates waiting chaos with AI-powered queue intelligence for modern colleges. Book slots, track tokens, and manage queues in real-time." />
+  <meta name="keywords" content="college queue, smart queue, token booking, queue management, student portal" />
+  <meta property="og:title" content="QueuePro — Smart College Queue System" />
+  <meta property="og:description" content="AI-powered queue intelligence for modern colleges." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     CONFETTI CANVAS (global)
+════════════════════════════════════ -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ════════════════════════════════════
+     KEYBOARD SHORTCUTS HINT
+════════════════════════════════════ -->
+<div id="shortcuts-overlay" class="shortcuts-overlay" onclick="closeShortcuts()">
+  <div class="shortcuts-modal glass-card" onclick="event.stopPropagation()">
+    <div class="shortcuts-header">
+      <span><i class="fas fa-keyboard"></i> Keyboard Shortcuts</span>
+      <button onclick="closeShortcuts()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="shortcuts-grid">
+      <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>B</kbd><span>Book Slot</span></div>
+      <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>Q</kbd><span>Live Queue</span></div>
+      <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>T</kbd><span>My Token</span></div>
+      <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>H</kbd><span>History</span></div>
+      <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>N</kbd><span>Notifications</span></div>
+      <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>P</kbd><span>Print Token</span></div>
+      <div class="shortcut-item"><kbd>Esc</kbd><span>Close Modal</span></div>
+      <div class="shortcut-item"><kbd>?</kbd><span>Show Shortcuts</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     LANDING PAGE
+════════════════════════════════════ -->
+<div id="landing-page" class="page active">
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="grid-overlay"></div>
+  <div class="floating-particles" id="particles"></div>
+
+  <div class="landing-center">
+    <div class="landing-logo">
+      <div class="logo-icon"><i class="fas fa-layer-group"></i></div>
+      <span class="logo-text">QueuePro</span>
+    </div>
+    <h1 class="landing-title">Smart Queue<br /><span class="gradient-text">Management System</span></h1>
+    <p class="landing-sub">Eliminate waiting chaos. AI-powered queue intelligence for modern colleges.</p>
+
+    <div class="landing-form glass-card">
+      <div class="form-group">
+        <label>Select Your College</label>
+        <div class="select-wrapper">
+          <select id="college-select">
+            <option value="">— Choose College —</option>
+            <option value="IIT Delhi">IIT Delhi</option>
+            <option value="NIT Trichy">NIT Trichy</option>
+            <option value="BITS Pilani">BITS Pilani</option>
+            <option value="Delhi University">Delhi University</option>
+            <option value="IIM Ahmedabad">IIM Ahmedabad</option>
+            <option value="VIT Vellore">VIT Vellore</option>
+          </select>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Enter Your Name</label>
+        <input type="text" id="user-name" placeholder="Full Name" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label>Choose Your Role</label>
+        <div class="role-cards">
+          <div class="role-card" data-role="student" onclick="selectRole('student')">
+            <div class="role-icon"><i class="fas fa-user-graduate"></i></div>
+            <div class="role-label">Student</div>
+            <div class="role-desc">Book slots, track tokens &amp; queue</div>
+            <div class="role-check"><i class="fas fa-check-circle"></i></div>
+          </div>
+          <div class="role-card" data-role="admin" onclick="selectRole('admin')">
+            <div class="role-icon"><i class="fas fa-user-shield"></i></div>
+            <div class="role-label">Admin</div>
+            <div class="role-desc">Manage queue, analytics &amp; control</div>
+            <div class="role-check"><i class="fas fa-check-circle"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="remember-row">
+        <label class="remember-check">
+          <input type="checkbox" id="remember-me" /> Remember me
+        </label>
+      </div>
+
+      <button class="btn-primary launch-btn" id="launch-btn" onclick="launchDashboard()">
+        <span>Enter Dashboard</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+
+    <div class="landing-stats">
+      <div class="stat-pill"><i class="fas fa-users"></i> 12,400+ Students</div>
+      <div class="stat-pill"><i class="fas fa-university"></i> 6 Colleges</div>
+      <div class="stat-pill"><i class="fas fa-clock"></i> 70% Less Wait</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     STUDENT DASHBOARD
+════════════════════════════════════ -->
+<div id="student-page" class="page">
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo"><i class="fas fa-layer-group"></i> QueuePro</div>
+        <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="sidebar-profile">
+        <div class="profile-avatar" id="s-avatar">A</div>
+        <div class="profile-info">
+          <div class="profile-name" id="s-name">Student</div>
+          <div class="profile-college" id="s-college">College</div>
+          <div class="profile-badge"><i class="fas fa-circle"></i> Online</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a class="nav-link active" data-section="s-dashboard" onclick="showSection('s-dashboard','student',this)"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a class="nav-link" data-section="s-booking" onclick="showSection('s-booking','student',this)"><i class="fas fa-calendar-plus"></i> Slot Booking</a>
+        <a class="nav-link" data-section="s-queue" onclick="showSection('s-queue','student',this)"><i class="fas fa-list-ol"></i> Live Queue</a>
+        <a class="nav-link" data-section="s-token" onclick="showSection('s-token','student',this)"><i class="fas fa-ticket-alt"></i> My Token</a>
+        <a class="nav-link" data-section="s-documents" onclick="showSection('s-documents','student',this)"><i class="fas fa-folder-open"></i> Documents</a>
+
+        <div class="nav-section-title">Account</div>
+        <a class="nav-link" data-section="s-history" onclick="showSection('s-history','student',this)"><i class="fas fa-history"></i> Token History</a>
+        <a class="nav-link" data-section="s-feedback" onclick="showSection('s-feedback','student',this)"><i class="fas fa-star"></i> Feedback</a>
+        <a class="nav-link" data-section="s-profile" onclick="showSection('s-profile','student',this)"><i class="fas fa-id-card"></i> Profile</a>
+        <a class="nav-link" data-section="s-notifications" onclick="showSection('s-notifications','student',this)"><i class="fas fa-bell"></i> Notifications <span class="badge" id="notif-badge">3</span></a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button class="btn-keyboard-hint" onclick="openShortcuts()"><i class="fas fa-keyboard"></i> <span>Shortcuts</span></button>
+        <button class="btn-theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span></button>
+        <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="topbar-title" id="s-topbar-title">Dashboard</div>
+        <div class="topbar-actions">
+          <button class="icon-btn notif-btn" onclick="showSection('s-notifications','student',null)">
+            <i class="fas fa-bell"></i>
+            <span class="notif-dot" id="s-notif-dot"></span>
+          </button>
+          <button class="icon-btn sound-btn" id="sound-btn" onclick="toggleSound()" title="Toggle sound alerts">
+            <i class="fas fa-volume-up"></i>
+          </button>
+          <div class="college-badge-top" id="s-college-badge">IIT Delhi</div>
+          <button class="btn-theme-sm" onclick="toggleTheme()"><i class="fas fa-adjust"></i></button>
+        </div>
+      </header>
+
+      <!-- ── STUDENT: Dashboard ── -->
+      <section id="s-dashboard" class="content-section active">
+        <div class="section-header">
+          <h2>Welcome back, <span id="s-welcome-name">Student</span> <span id="s-greeting-emoji">👋</span></h2>
+          <p id="s-greeting-sub">Here's your queue overview for today</p>
+        </div>
+
+        <!-- Animated Stats Row -->
+        <div class="stats-grid">
+          <div class="stat-card glass-card animated" data-delay="0">
+            <div class="stat-icon cyan"><i class="fas fa-ticket-alt"></i></div>
+            <div class="stat-info">
+              <div class="stat-value" id="s-pos-stat" data-count="7">0</div>
+              <div class="stat-label">Your Queue Position</div>
+            </div>
+            <div class="stat-trend up"><i class="fas fa-arrow-up"></i> Moving</div>
+          </div>
+          <div class="stat-card glass-card animated" data-delay="100">
+            <div class="stat-icon purple"><i class="fas fa-clock"></i></div>
+            <div class="stat-info">
+              <div class="stat-value" id="s-wait-time">18<small>min</small></div>
+              <div class="stat-label">Estimated Wait</div>
+            </div>
+            <div class="stat-trend ai"><i class="fas fa-brain"></i> AI Est.</div>
+          </div>
+          <div class="stat-card glass-card animated" data-delay="200">
+            <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-info">
+              <div class="stat-value" data-count="4">0</div>
+              <div class="stat-label">Tokens Used</div>
+            </div>
+            <div class="stat-trend green-t"><i class="fas fa-history"></i> All time</div>
+          </div>
+          <div class="stat-card glass-card animated" data-delay="300">
+            <div class="stat-icon orange"><i class="fas fa-fire"></i></div>
+            <div class="stat-info">
+              <div class="stat-value">High</div>
+              <div class="stat-label">Busy Hours Now</div>
+            </div>
+            <div class="stat-trend warn"><i class="fas fa-exclamation-triangle"></i> Peak Time</div>
+          </div>
+        </div>
+
+        <!-- Live Queue + Busy Chart Row -->
+        <div class="two-col">
+          <!-- Live Queue Widget -->
+          <div class="glass-card live-queue-card">
+            <div class="card-header">
+              <span><i class="fas fa-signal"></i> Live Queue</span>
+              <span class="live-dot"><i class="fas fa-circle"></i> Live</span>
+            </div>
+            <div class="queue-visual">
+              <div class="queue-track">
+                <div class="queue-people" id="queue-people"></div>
+              </div>
+              <div class="queue-your-pos">
+                <div class="pos-number" id="live-pos">7</div>
+                <div class="pos-label">Your Position</div>
+              </div>
+            </div>
+            <div class="queue-info-row">
+              <span><i class="fas fa-users"></i> <span id="ahead-count">6</span> ahead</span>
+              <span><i class="fas fa-stopwatch"></i> ~<span id="dashboard-wait">18</span> min</span>
+              <span class="status-chip processing" id="serving-chip">Processing: #T-0042</span>
+            </div>
+          </div>
+
+          <!-- Smart Clock Widget -->
+          <div class="glass-card smart-clock-card">
+            <div class="card-header">
+              <span><i class="fas fa-clock"></i> Smart Clock</span>
+              <span class="chip cyan" id="smart-day">Today</span>
+            </div>
+            <div class="clock-body">
+              <div class="clock-time" id="clock-time">--:--:--</div>
+              <div class="clock-date" id="clock-date">Loading...</div>
+              <div class="office-hours-bar">
+                <div class="oh-label"><span>Office Hours</span><span id="oh-status" class="oh-open">Open</span></div>
+                <div class="oh-bar"><div class="oh-fill" id="oh-fill"></div></div>
+                <div class="oh-times"><span>9:00 AM</span><span>5:00 PM</span></div>
+              </div>
+              <div class="best-time-hint" id="best-time-hint">
+                <i class="fas fa-lightbulb"></i> <span>Best time to visit: After 4 PM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Busy Hours Chart -->
+        <div class="glass-card">
+          <div class="card-header">
+            <span><i class="fas fa-chart-bar"></i> Busy Hours Today</span>
+            <span class="chip orange">Peak: 2-4 PM</span>
+          </div>
+          <canvas id="busyChart" height="130"></canvas>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="glass-card" style="margin-top:20px">
+          <div class="card-header"><span><i class="fas fa-bolt"></i> Quick Actions</span></div>
+          <div class="quick-actions">
+            <button class="qa-btn cyan" onclick="showSection('s-booking','student',null)"><i class="fas fa-calendar-plus"></i><span>Book Slot</span></button>
+            <button class="qa-btn purple" onclick="showSection('s-token','student',null)"><i class="fas fa-qrcode"></i><span>My Token</span></button>
+            <button class="qa-btn green" onclick="showSection('s-documents','student',null)"><i class="fas fa-upload"></i><span>Upload Docs</span></button>
+            <button class="qa-btn orange" onclick="cancelBookingPrompt()"><i class="fas fa-ban"></i><span>Cancel</span></button>
+            <button class="qa-btn blue" onclick="reschedulePrompt()"><i class="fas fa-sync-alt"></i><span>Reschedule</span></button>
+            <button class="qa-btn pink" onclick="showSection('s-feedback','student',null)"><i class="fas fa-star"></i><span>Feedback</span></button>
+          </div>
+        </div>
+
+        <!-- AI Wait Estimator -->
+        <div class="glass-card ai-card">
+          <div class="card-header">
+            <span><i class="fas fa-robot"></i> AI Wait Estimator</span>
+            <span class="chip cyan">Powered by AI</span>
+          </div>
+          <div class="ai-body">
+            <div class="ai-meter">
+              <div class="ai-fill" id="ai-fill" style="width:65%"></div>
+            </div>
+            <div class="ai-stats">
+              <div class="ai-stat"><span>Predicted Wait</span><strong id="ai-pred">18 min</strong></div>
+              <div class="ai-stat"><span>Confidence</span><strong>91%</strong></div>
+              <div class="ai-stat"><span>Best time today</span><strong>After 4 PM</strong></div>
+              <div class="ai-stat"><span>Queue speed</span><strong>~2.5 min/token</strong></div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── STUDENT: Slot Booking ── -->
+      <section id="s-booking" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-calendar-plus"></i> Slot Booking</h2>
+          <p>Book your appointment slot for college services</p>
+        </div>
+        <div class="two-col">
+          <div class="glass-card">
+            <div class="card-header"><span>Select Service</span></div>
+            <div class="service-list">
+              <div class="service-item active" onclick="selectService(this,'Examination Form')"><i class="fas fa-file-alt"></i> Examination Form <span class="chip green">Available</span></div>
+              <div class="service-item" onclick="selectService(this,'TC / Migration')"><i class="fas fa-file-export"></i> TC / Migration <span class="chip orange">5 slots</span></div>
+              <div class="service-item" onclick="selectService(this,'Scholarship')"><i class="fas fa-hand-holding-usd"></i> Scholarship <span class="chip cyan">Open</span></div>
+              <div class="service-item" onclick="selectService(this,'Bonafide Certificate')"><i class="fas fa-certificate"></i> Bonafide Certificate <span class="chip green">Available</span></div>
+              <div class="service-item" onclick="selectService(this,'ID Card')"><i class="fas fa-id-card"></i> ID Card Renewal <span class="chip red">Busy</span></div>
+              <div class="service-item" onclick="selectService(this,'Fee Submission')"><i class="fas fa-rupee-sign"></i> Fee Submission <span class="chip green">Available</span></div>
+            </div>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><span>Pick Date &amp; Time</span></div>
+            <div class="date-picker-wrapper">
+              <input type="date" id="booking-date" class="date-input" />
+              <div class="time-slots" id="time-slots">
+                <div class="time-slot" onclick="selectTime(this)">9:00 AM <span class="slot-count">12</span></div>
+                <div class="time-slot" onclick="selectTime(this)">10:00 AM <span class="slot-count">8</span></div>
+                <div class="time-slot taken">11:00 AM <span class="slot-count">Full</span></div>
+                <div class="time-slot" onclick="selectTime(this)">12:00 PM <span class="slot-count">15</span></div>
+                <div class="time-slot" onclick="selectTime(this)">2:00 PM <span class="slot-count">6</span></div>
+                <div class="time-slot taken">3:00 PM <span class="slot-count">Full</span></div>
+                <div class="time-slot" onclick="selectTime(this)">4:00 PM <span class="slot-count">20</span></div>
+              </div>
+            </div>
+            <div class="booking-doc-hint glass-card" id="booking-doc-hint">
+              <i class="fas fa-info-circle"></i>
+              <span id="booking-doc-text">Please bring: Aadhar Card, College ID, Fee Receipt</span>
+            </div>
+            <button class="btn-primary full-width mt" onclick="confirmBooking()"><i class="fas fa-check"></i> Confirm Booking</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── STUDENT: Live Queue ── -->
+      <section id="s-queue" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-list-ol"></i> Live Queue Status</h2>
+          <p>Real-time queue tracking</p>
+        </div>
+
+        <!-- Position Alert Banner -->
+        <div class="position-alert-bar" id="position-alert-bar" style="display:none">
+          <i class="fas fa-bell position-alert-icon"></i>
+          <span id="position-alert-text">You're 5 positions away! Head to Counter C-3 now.</span>
+          <button onclick="document.getElementById('position-alert-bar').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="queue-full-view">
+          <div class="glass-card queue-hero">
+            <div class="queue-big-number" id="big-queue-num">7</div>
+            <div class="queue-big-label">Your Current Position</div>
+            <div class="queue-progress-bar"><div class="queue-progress-fill" id="queue-progress-fill" style="width:35%"></div></div>
+            <div class="queue-details-row">
+              <div><i class="fas fa-users"></i><br/><span id="q-total">30</span> Total</div>
+              <div><i class="fas fa-stopwatch"></i><br/><span id="q-wait">18</span> min</div>
+              <div><i class="fas fa-play-circle"></i><br/>#T-<span id="q-serving">0042</span> Now</div>
+            </div>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><span><i class="fas fa-stream"></i> Queue List</span><button class="btn-sm" onclick="refreshQueue()"><i class="fas fa-sync-alt"></i> Refresh</button></div>
+            <div class="queue-list" id="queue-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── STUDENT: My Token ── -->
+      <section id="s-token" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-ticket-alt"></i> My Token</h2>
+          <p>Current active token &amp; QR code</p>
+        </div>
+        <div class="token-layout">
+          <div class="token-card glass-card">
+            <div class="token-header">
+              <span class="token-college" id="t-college">IIT Delhi</span>
+              <span class="token-status active-token">Active</span>
+            </div>
+            <div class="token-number" id="t-number">T-0049</div>
+            <div class="token-service" id="t-service">Examination Form</div>
+            <div class="token-divider"></div>
+            <div class="token-info-row">
+              <div><span>Date</span><strong id="t-date">Today</strong></div>
+              <div><span>Time</span><strong id="t-time">10:00 AM</strong></div>
+              <div><span>Counter</span><strong>C-3</strong></div>
+            </div>
+            <div id="qrcode" class="qr-box"></div>
+            <!-- Countdown Ring -->
+            <div class="countdown-wrap">
+              <svg class="countdown-ring" viewBox="0 0 80 80">
+                <circle class="ring-bg" cx="40" cy="40" r="34" />
+                <circle class="ring-fill" id="ring-fill" cx="40" cy="40" r="34" />
+              </svg>
+              <div class="countdown-inner">
+                <span class="countdown-num" id="countdown-num">18</span>
+                <span class="countdown-unit">min</span>
+              </div>
+            </div>
+            <div class="token-actions">
+              <button class="btn-primary" onclick="downloadToken()"><i class="fas fa-download"></i> Download</button>
+              <button class="btn-outline" onclick="printToken()"><i class="fas fa-print"></i> Print</button>
+              <button class="btn-outline" onclick="shareToken()"><i class="fas fa-share-alt"></i> Share</button>
+            </div>
+            <div class="token-share-row">
+              <button class="share-wa-btn" onclick="shareWhatsApp()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+              <button class="btn-outline btn-sm" onclick="cancelBookingPrompt()"><i class="fas fa-times"></i> Cancel</button>
+              <button class="btn-outline btn-sm" onclick="reschedulePrompt()"><i class="fas fa-sync-alt"></i> Reschedule</button>
+            </div>
+          </div>
+          <div class="glass-card token-side">
+            <div class="card-header"><span><i class="fas fa-clock"></i> Live Wait Info</span></div>
+            <div class="wait-tracker">
+              <div class="wt-row"><span>Position Now</span><strong class="cyan-text" id="wt-pos">7</strong></div>
+              <div class="wt-row"><span>Tokens Before You</span><strong id="wt-before">6</strong></div>
+              <div class="wt-row"><span>Avg per token</span><strong>~2.5 min</strong></div>
+              <div class="wt-row"><span>Est. Turn</span><strong class="green-text" id="wt-est">~18 min</strong></div>
+              <div class="wt-row"><span>Counter Status</span><strong class="orange-text">Processing</strong></div>
+            </div>
+            <div class="card-header mt"><span><i class="fas fa-bell"></i> Alerts</span></div>
+            <div class="alert-box info" id="token-alert">You are 5 positions away! Head to Counter C-3.</div>
+
+            <div class="card-header mt"><span><i class="fas fa-info-circle"></i> Documents Needed</span></div>
+            <div class="doc-checklist" id="token-doc-list">
+              <div class="doc-item checked"><i class="fas fa-check-circle"></i> Aadhar Card</div>
+              <div class="doc-item checked"><i class="fas fa-check-circle"></i> College ID</div>
+              <div class="doc-item pending"><i class="fas fa-times-circle"></i> Fee Receipt</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── STUDENT: Documents ── -->
+      <section id="s-documents" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-folder-open"></i> Documents</h2>
+          <p>Required documents &amp; upload manager</p>
+        </div>
+        <div class="two-col">
+          <div class="glass-card">
+            <div class="card-header"><span><i class="fas fa-clipboard-list"></i> Required Documents</span></div>
+            <div class="doc-checklist">
+              <div class="doc-item checked"><i class="fas fa-check-circle"></i> Aadhar Card</div>
+              <div class="doc-item checked"><i class="fas fa-check-circle"></i> College ID</div>
+              <div class="doc-item pending"><i class="fas fa-times-circle"></i> Fee Receipt</div>
+              <div class="doc-item pending"><i class="fas fa-times-circle"></i> Passport Photo</div>
+              <div class="doc-item checked"><i class="fas fa-check-circle"></i> Previous Marksheet</div>
+              <div class="doc-item pending"><i class="fas fa-times-circle"></i> Parent Signature Form</div>
+            </div>
+            <div class="doc-progress-wrap">
+              <div><span>Completion</span><span>3/6 (50%)</span></div>
+              <div class="doc-bar"><div class="doc-bar-fill" style="width:50%"></div></div>
+            </div>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><span><i class="fas fa-cloud-upload-alt"></i> Upload Documents</span></div>
+            <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+              <i class="fas fa-cloud-upload-alt upload-icon"></i>
+              <p>Drag &amp; drop or click to upload</p>
+              <small>PDF, JPG, PNG — Max 5MB</small>
+            </div>
+            <input type="file" id="file-input" hidden multiple onchange="handleFileUpload(event)" />
+            <div class="upload-list" id="upload-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── STUDENT: Token History ── -->
+      <section id="s-history" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-history"></i> Token History</h2>
+          <p>Your past bookings &amp; tokens</p>
+        </div>
+        <div class="glass-card">
+          <div class="card-header">
+            <span>All Tokens</span>
+            <input type="text" placeholder="Search tokens..." class="search-input" oninput="filterHistory(event)" />
+          </div>
+          <div class="history-table-wrap">
+            <table class="history-table">
+              <thead><tr><th>Token</th><th>Service</th><th>Date</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="history-tbody">
+                <tr><td>#T-0049</td><td>Examination Form</td><td>Today</td><td>10:00 AM</td><td><span class="chip cyan">Active</span></td><td><button class="btn-sm" onclick="viewToken('T-0049')">View</button></td></tr>
+                <tr><td>#T-0041</td><td>Bonafide Cert.</td><td>Jan 15</td><td>11:00 AM</td><td><span class="chip green">Done</span></td><td><button class="btn-sm" onclick="viewToken('T-0041')">View</button></td></tr>
+                <tr><td>#T-0033</td><td>ID Card</td><td>Jan 8</td><td>9:00 AM</td><td><span class="chip green">Done</span></td><td><button class="btn-sm" onclick="viewToken('T-0033')">View</button></td></tr>
+                <tr><td>#T-0025</td><td>Scholarship</td><td>Dec 20</td><td>2:00 PM</td><td><span class="chip red">Cancelled</span></td><td><button class="btn-sm" onclick="viewToken('T-0025')">View</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── STUDENT: Feedback ── -->
+      <section id="s-feedback" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-star"></i> Feedback</h2>
+          <p>Rate your experience</p>
+        </div>
+        <div class="glass-card feedback-card">
+          <div class="feedback-inner">
+            <div class="star-rating" id="star-rating">
+              <i class="fas fa-star" onclick="rateStar(1)"></i>
+              <i class="fas fa-star" onclick="rateStar(2)"></i>
+              <i class="fas fa-star" onclick="rateStar(3)"></i>
+              <i class="fas fa-star" onclick="rateStar(4)"></i>
+              <i class="fas fa-star" onclick="rateStar(5)"></i>
+            </div>
+            <p class="rating-label" id="rating-label">Tap to rate</p>
+            <div class="feedback-tags">
+              <span class="fb-tag" onclick="toggleTag(this)">Fast Service</span>
+              <span class="fb-tag" onclick="toggleTag(this)">Friendly Staff</span>
+              <span class="fb-tag" onclick="toggleTag(this)">Long Wait</span>
+              <span class="fb-tag" onclick="toggleTag(this)">Clear Process</span>
+              <span class="fb-tag" onclick="toggleTag(this)">Confusing</span>
+              <span class="fb-tag" onclick="toggleTag(this)">Helpful App</span>
+            </div>
+            <textarea id="feedback-text" placeholder="Write your feedback..." rows="4"></textarea>
+            <button class="btn-primary full-width" onclick="submitFeedback()"><i class="fas fa-paper-plane"></i> Submit Feedback</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── STUDENT: Profile ── -->
+      <section id="s-profile" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-id-card"></i> Profile Card</h2>
+          <p>Your student profile</p>
+        </div>
+        <div class="profile-layout">
+          <div class="glass-card profile-main-card">
+            <div class="profile-bg-strip"></div>
+            <div class="profile-avatar-big" id="p-avatar-big">A</div>
+            <div class="profile-name-big" id="p-name-big">Student Name</div>
+            <div class="profile-roll">Roll No: 2021CS042</div>
+            <div class="profile-college-name" id="p-college-name">IIT Delhi</div>
+            <div class="profile-stats-row">
+              <div><strong>4</strong><span>Tokens</span></div>
+              <div><strong>3</strong><span>Done</span></div>
+              <div><strong>1</strong><span>Active</span></div>
+            </div>
+            <button class="btn-outline full-width" onclick="editProfile()"><i class="fas fa-edit"></i> Edit Profile</button>
+          </div>
+          <div class="glass-card profile-details-card">
+            <div class="card-header"><span>Personal Details</span></div>
+            <div class="profile-form">
+              <div class="pf-row"><label>Full Name</label><input type="text" id="pf-name" value="Student Name" /></div>
+              <div class="pf-row"><label>Email</label><input type="email" id="pf-email" value="student@college.edu" /></div>
+              <div class="pf-row"><label>Phone</label><input type="tel" id="pf-phone" value="+91 98765 43210" /></div>
+              <div class="pf-row"><label>Department</label><input type="text" value="Computer Science" /></div>
+              <div class="pf-row"><label>Year</label><input type="text" value="3rd Year" /></div>
+              <div class="pf-row"><label>College</label><input type="text" id="pf-college" value="IIT Delhi" /></div>
+              <button class="btn-primary mt" onclick="saveProfile()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── STUDENT: Notifications ── -->
+      <section id="s-notifications" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-bell"></i> Notifications</h2>
+          <p>Stay updated with live alerts</p>
+        </div>
+        <div class="glass-card">
+          <div class="card-header"><span>All Notifications</span><button class="btn-sm" onclick="clearNotifs()">Clear All</button></div>
+          <div class="notif-list" id="notif-list">
+            <div class="notif-item unread"><div class="notif-icon cyan"><i class="fas fa-ticket-alt"></i></div><div class="notif-body"><strong>Your token is up next!</strong><p>T-0049 — Head to Counter C-3 immediately</p><span>2 min ago</span></div></div>
+            <div class="notif-item unread"><div class="notif-icon orange"><i class="fas fa-fire"></i></div><div class="notif-body"><strong>High traffic alert</strong><p>Current queue is 30+. Try after 4 PM.</p><span>15 min ago</span></div></div>
+            <div class="notif-item unread"><div class="notif-icon purple"><i class="fas fa-broadcast-tower"></i></div><div class="notif-body"><strong>Admin Broadcast</strong><p>Counter C-2 is closed today due to maintenance.</p><span>1 hr ago</span></div></div>
+            <div class="notif-item"><div class="notif-icon green"><i class="fas fa-check-circle"></i></div><div class="notif-body"><strong>Booking Confirmed</strong><p>Your slot for Examination Form is booked.</p><span>2 hrs ago</span></div></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     ADMIN DASHBOARD
+════════════════════════════════════ -->
+<div id="admin-page" class="page">
+  <div class="app-layout">
+
+    <!-- Admin Sidebar -->
+    <aside class="sidebar" id="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo"><i class="fas fa-layer-group"></i> QueuePro</div>
+        <button class="sidebar-close" onclick="toggleAdminSidebar()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="sidebar-profile">
+        <div class="profile-avatar admin-av">AD</div>
+        <div class="profile-info">
+          <div class="profile-name" id="a-name">Admin</div>
+          <div class="profile-college" id="a-college">College</div>
+          <div class="profile-badge admin-badge"><i class="fas fa-shield-alt"></i> Admin</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Control Center</div>
+        <a class="nav-link active" data-section="a-dashboard" onclick="showAdminSection('a-dashboard',this)"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a class="nav-link" data-section="a-queue-control" onclick="showAdminSection('a-queue-control',this)"><i class="fas fa-sliders-h"></i> Queue Control</a>
+        <a class="nav-link" data-section="a-students" onclick="showAdminSection('a-students',this)"><i class="fas fa-users"></i> Students List</a>
+        <a class="nav-link" data-section="a-analytics" onclick="showAdminSection('a-analytics',this)"><i class="fas fa-chart-line"></i> Analytics</a>
+        <div class="nav-section-title">Management</div>
+        <a class="nav-link" data-section="a-heatmap" onclick="showAdminSection('a-heatmap',this)"><i class="fas fa-th"></i> Activity Heatmap</a>
+        <a class="nav-link" data-section="a-counters" onclick="showAdminSection('a-counters',this)"><i class="fas fa-desktop"></i> Live Counters</a>
+        <a class="nav-link" data-section="a-documents" onclick="showAdminSection('a-documents',this)"><i class="fas fa-folder-plus"></i> Documents Manager</a>
+        <a class="nav-link" data-section="a-broadcast" onclick="showAdminSection('a-broadcast',this)"><i class="fas fa-broadcast-tower"></i> Broadcast</a>
+        <a class="nav-link" data-section="a-settings" onclick="showAdminSection('a-settings',this)"><i class="fas fa-cog"></i> Settings</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="btn-keyboard-hint" onclick="openShortcuts()"><i class="fas fa-keyboard"></i> <span>Shortcuts</span></button>
+        <button class="btn-theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon" id="a-theme-icon"></i> <span>Theme</span></button>
+        <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </aside>
+
+    <!-- Admin Main -->
+    <main class="main-content">
+      <header class="topbar">
+        <button class="menu-btn" onclick="toggleAdminSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="topbar-title" id="a-topbar-title">Admin Dashboard</div>
+        <div class="topbar-actions">
+          <span class="live-indicator"><i class="fas fa-circle"></i> Live</span>
+          <div class="college-badge-top" id="a-college-badge">IIT Delhi</div>
+          <button class="btn-theme-sm" onclick="toggleTheme()"><i class="fas fa-adjust"></i></button>
+        </div>
+      </header>
+
+      <!-- ── ADMIN: Dashboard ── -->
+      <section id="a-dashboard" class="content-section active">
+        <div class="section-header">
+          <h2>Control Center <span class="chip cyan">Live</span></h2>
+          <p>Real-time queue management overview</p>
+        </div>
+
+        <!-- Big Stats -->
+        <div class="stats-grid">
+          <div class="stat-card glass-card animated" data-delay="0">
+            <div class="stat-icon cyan"><i class="fas fa-ticket-alt"></i></div>
+            <div class="stat-info"><div class="stat-value" data-count="47">0</div><div class="stat-label">Total Tokens Today</div></div>
+            <div class="stat-trend up"><i class="fas fa-arrow-up"></i> +12%</div>
+          </div>
+          <div class="stat-card glass-card animated" data-delay="100">
+            <div class="stat-icon orange"><i class="fas fa-list-ol"></i></div>
+            <div class="stat-info"><div class="stat-value" id="a-queue-len" data-count="23">0</div><div class="stat-label">Queue Length</div></div>
+            <div class="stat-trend warn"><i class="fas fa-fire"></i> High</div>
+          </div>
+          <div class="stat-card glass-card animated" data-delay="200">
+            <div class="stat-icon purple"><i class="fas fa-clock"></i></div>
+            <div class="stat-info"><div class="stat-value">12<small>min</small></div><div class="stat-label">Avg Wait Time</div></div>
+            <div class="stat-trend green-t"><i class="fas fa-arrow-down"></i> Improving</div>
+          </div>
+          <div class="stat-card glass-card animated" data-delay="300">
+            <div class="stat-icon green"><i class="fas fa-check-double"></i></div>
+            <div class="stat-info"><div class="stat-value" data-count="24">0</div><div class="stat-label">Completed</div></div>
+            <div class="stat-trend green-t"><i class="fas fa-check"></i> Done</div>
+          </div>
+        </div>
+
+        <!-- Queue Controls -->
+        <div class="glass-card control-center-card">
+          <div class="card-header"><span><i class="fas fa-sliders-h"></i> Queue Controls</span><span class="status-chip processing" id="queue-status-chip">Processing</span></div>
+          <div class="now-serving-row">
+            <div class="now-serving"><span>Now Serving</span><div class="big-token" id="now-serving-token">T-0042</div><div style="font-size:0.8rem;color:var(--text-sec)">Counter C-3</div></div>
+            <div class="control-btns">
+              <button class="ctrl-btn green" onclick="callNext()"><i class="fas fa-forward"></i> Call Next</button>
+              <button class="ctrl-btn orange" id="pause-btn" onclick="pauseQueue()"><i class="fas fa-pause"></i> Pause</button>
+              <button class="ctrl-btn red" onclick="resetQueue()"><i class="fas fa-undo"></i> Reset</button>
+              <button class="ctrl-btn cyan" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming + Today's Work -->
+        <div class="two-col">
+          <div class="glass-card">
+            <div class="card-header"><span><i class="fas fa-user-clock"></i> Upcoming Students</span><span class="chip orange">Next 5</span></div>
+            <div class="upcoming-list" id="upcoming-list"></div>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><span><i class="fas fa-tasks"></i> Today's Work</span></div>
+            <div class="todays-list" id="todays-list"></div>
+          </div>
+        </div>
+
+        <!-- Peak Hour Indicator -->
+        <div class="glass-card peak-card">
+          <div class="card-header"><span><i class="fas fa-chart-area"></i> Peak Hour Indicator</span><span class="chip red" id="peak-chip">PEAK NOW</span></div>
+          <div class="peak-hours">
+            <div class="peak-hour-block" data-hour="9">9<br/><small>AM</small><div class="ph-bar" style="height:40%"></div></div>
+            <div class="peak-hour-block" data-hour="10">10<br/><small>AM</small><div class="ph-bar" style="height:65%"></div></div>
+            <div class="peak-hour-block" data-hour="11">11<br/><small>AM</small><div class="ph-bar" style="height:80%"></div></div>
+            <div class="peak-hour-block active" data-hour="12">12<br/><small>PM</small><div class="ph-bar peak" style="height:100%"></div></div>
+            <div class="peak-hour-block" data-hour="1">1<br/><small>PM</small><div class="ph-bar" style="height:90%"></div></div>
+            <div class="peak-hour-block" data-hour="2">2<br/><small>PM</small><div class="ph-bar peak" style="height:95%"></div></div>
+            <div class="peak-hour-block" data-hour="3">3<br/><small>PM</small><div class="ph-bar" style="height:70%"></div></div>
+            <div class="peak-hour-block" data-hour="4">4<br/><small>PM</small><div class="ph-bar" style="height:50%"></div></div>
+            <div class="peak-hour-block" data-hour="5">5<br/><small>PM</small><div class="ph-bar" style="height:30%"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ADMIN: Queue Control ── -->
+      <section id="a-queue-control" class="content-section">
+        <div class="section-header"><h2><i class="fas fa-sliders-h"></i> Queue Control</h2></div>
+        <div class="two-col">
+          <div class="glass-card">
+            <div class="card-header"><span>Full Token List</span><button class="btn-sm" onclick="exportCSV()"><i class="fas fa-download"></i> CSV</button></div>
+            <div class="full-token-list" id="full-token-list"></div>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><span>Slot Limit Control</span></div>
+            <div class="slot-control">
+              <div class="slot-row"><span>Examination Form</span><input type="number" value="20" min="1" max="100" class="slot-inp" /></div>
+              <div class="slot-row"><span>TC / Migration</span><input type="number" value="10" min="1" max="100" class="slot-inp" /></div>
+              <div class="slot-row"><span>Scholarship</span><input type="number" value="15" min="1" max="100" class="slot-inp" /></div>
+              <div class="slot-row"><span>Bonafide Cert.</span><input type="number" value="25" min="1" max="100" class="slot-inp" /></div>
+              <div class="slot-row"><span>ID Card Renewal</span><input type="number" value="8" min="1" max="100" class="slot-inp" /></div>
+              <button class="btn-primary mt" onclick="saveSlotLimits()"><i class="fas fa-save"></i> Save Limits</button>
+            </div>
+            <div class="card-header mt"><span>Live Status Boards</span></div>
+            <div class="status-boards">
+              <div class="status-board open"><span>Counter C-1</span><span class="s-tag">Open</span></div>
+              <div class="status-board open"><span>Counter C-2</span><span class="s-tag">Open</span></div>
+              <div class="status-board closed"><span>Counter C-3</span><span class="s-tag">Maintenance</span></div>
+              <div class="status-board busy"><span>Counter C-4</span><span class="s-tag">Busy</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ADMIN: Students ── -->
+      <section id="a-students" class="content-section">
+        <div class="section-header"><h2><i class="fas fa-users"></i> Students List</h2></div>
+        <div class="glass-card">
+          <div class="card-header">
+            <span>All Students Today</span>
+            <input type="text" placeholder="Search student, token, service..." class="search-input" id="admin-search" oninput="filterAdminStudents(event)" />
+          </div>
+          <div class="history-table-wrap">
+            <table class="history-table">
+              <thead><tr><th>Token</th><th>Name</th><th>Service</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="admin-students-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ADMIN: Analytics ── -->
+      <section id="a-analytics" class="content-section">
+        <div class="section-header"><h2><i class="fas fa-chart-line"></i> Analytics</h2></div>
+        <div class="two-col">
+          <div class="glass-card">
+            <div class="card-header"><span>Token Distribution (Week)</span></div>
+            <canvas id="adminWeekChart" height="200"></canvas>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><span>Service-wise Breakdown</span></div>
+            <canvas id="adminPieChart" height="200"></canvas>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-header"><span>Daily Token Count (Month)</span></div>
+          <canvas id="adminMonthChart" height="120"></canvas>
+        </div>
+      </section>
+
+      <!-- ── ADMIN: Activity Heatmap ── -->
+      <section id="a-heatmap" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-th"></i> Activity Heatmap</h2>
+          <p>GitHub-style weekly activity grid — darker = busier</p>
+        </div>
+        <div class="glass-card">
+          <div class="card-header">
+            <span>Last 12 Weeks — Queue Activity</span>
+            <div class="heatmap-legend">
+              <span>Less</span>
+              <div class="hm-box hm-0"></div>
+              <div class="hm-box hm-1"></div>
+              <div class="hm-box hm-2"></div>
+              <div class="hm-box hm-3"></div>
+              <div class="hm-box hm-4"></div>
+              <span>More</span>
+            </div>
+          </div>
+          <div class="heatmap-wrap">
+            <div class="heatmap-days">
+              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+            <div class="heatmap-grid" id="heatmap-grid"></div>
+          </div>
+          <div class="heatmap-stats">
+            <div class="hm-stat"><strong id="hm-total">—</strong><span>Total Tokens</span></div>
+            <div class="hm-stat"><strong id="hm-peak-day">—</strong><span>Busiest Day</span></div>
+            <div class="hm-stat"><strong id="hm-avg">—</strong><span>Daily Average</span></div>
+            <div class="hm-stat"><strong id="hm-streak">—</strong><span>Active Streak</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ADMIN: Live Counters ── -->
+      <section id="a-counters" class="content-section">
+        <div class="section-header">
+          <h2><i class="fas fa-desktop"></i> Live Counter Board</h2>
+          <p>Real-time multi-counter display</p>
+        </div>
+        <div class="counters-grid" id="counters-grid"></div>
+        <div class="glass-card" style="margin-top:20px">
+          <div class="card-header"><span>Counter Actions</span></div>
+          <div class="counter-actions-row">
+            <button class="ctrl-btn green" onclick="addCounter()"><i class="fas fa-plus"></i> Add Counter</button>
+            <button class="ctrl-btn cyan" onclick="callNextOnAll()"><i class="fas fa-forward"></i> Advance All</button>
+            <button class="ctrl-btn red" onclick="closeAllCounters()"><i class="fas fa-times-circle"></i> Close All</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ADMIN: Documents Manager ── -->
+      <section id="a-documents" class="content-section">
+        <div class="section-header"><h2><i class="fas fa-folder-plus"></i> Documents Manager</h2></div>
+        <div class="glass-card">
+          <div class="card-header"><span>Required Documents per Service</span><button class="btn-primary btn-sm" onclick="addDocRow()"><i class="fas fa-plus"></i> Add</button></div>
+          <div class="doc-manager" id="doc-manager">
+            <div class="dm-row"><select class="dm-select"><option>Examination Form</option><option>TC / Migration</option><option>Scholarship</option></select><input type="text" value="Aadhar Card" class="dm-inp" /><button class="btn-sm red-btn" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button></div>
+            <div class="dm-row"><select class="dm-select"><option>Examination Form</option><option>TC / Migration</option><option>Scholarship</option></select><input type="text" value="College ID" class="dm-inp" /><button class="btn-sm red-btn" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button></div>
+            <div class="dm-row"><select class="dm-select"><option selected>TC / Migration</option><option>Examination Form</option><option>Scholarship</option></select><input type="text" value="NOC from Department" class="dm-inp" /><button class="btn-sm red-btn" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button></div>
+          </div>
+          <button class="btn-primary mt" onclick="saveDocManager()"><i class="fas fa-save"></i> Save Changes</button>
+        </div>
+      </section>
+
+      <!-- ── ADMIN: Broadcast ── -->
+      <section id="a-broadcast" class="content-section">
+        <div class="section-header"><h2><i class="fas fa-broadcast-tower"></i> Broadcast Notification</h2></div>
+        <div class="glass-card broadcast-card">
+          <div class="form-group">
+            <label>Broadcast To</label>
+            <div class="select-wrapper">
+              <select id="broadcast-target">
+                <option>All Students</option>
+                <option>Queue Position 1-10</option>
+                <option>Specific Service</option>
+              </select><i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Message Type</label>
+            <div class="role-cards small">
+              <div class="role-card active-card" onclick="selectBroadcastType(this,'info')"><i class="fas fa-info-circle"></i> Info</div>
+              <div class="role-card" onclick="selectBroadcastType(this,'alert')"><i class="fas fa-exclamation-triangle"></i> Alert</div>
+              <div class="role-card" onclick="selectBroadcastType(this,'success')"><i class="fas fa-check-circle"></i> Success</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea id="broadcast-msg" placeholder="Write broadcast message..." rows="4"></textarea>
+          </div>
+          <button class="btn-primary full-width" onclick="sendBroadcast()"><i class="fas fa-paper-plane"></i> Send Broadcast</button>
+          <div class="broadcast-history glass-card mt">
+            <div class="card-header"><span>Broadcast History</span></div>
+            <div id="broadcast-hist">
+              <div class="notif-item"><div class="notif-icon orange"><i class="fas fa-exclamation-triangle"></i></div><div class="notif-body"><strong>Counter C-2 closed</strong><p>Sent to All Students</p><span>1 hr ago</span></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ADMIN: Settings ── -->
+      <section id="a-settings" class="content-section">
+        <div class="section-header"><h2><i class="fas fa-cog"></i> Settings</h2></div>
+        <div class="two-col">
+          <div class="glass-card">
+            <div class="card-header"><span>General Settings</span></div>
+            <div class="settings-form">
+              <div class="pf-row"><label>College Name</label><input type="text" id="a-college-input" value="IIT Delhi" /></div>
+              <div class="pf-row"><label>Admin Name</label><input type="text" id="a-admin-name" value="Dr. Sharma" /></div>
+              <div class="pf-row"><label>Working Hours</label><input type="text" value="9:00 AM - 5:00 PM" /></div>
+              <div class="pf-row"><label>Default Token Prefix</label><input type="text" value="T-" /></div>
+              <button class="btn-primary mt" onclick="saveAdminSettings()"><i class="fas fa-save"></i> Save</button>
+            </div>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><span>System Controls</span></div>
+            <div class="sys-controls">
+              <div class="toggle-row"><span>AI Wait Estimation</span><label class="toggle"><input type="checkbox" checked /><span class="slider-t"></span></label></div>
+              <div class="toggle-row"><span>Auto Notifications</span><label class="toggle"><input type="checkbox" checked /><span class="slider-t"></span></label></div>
+              <div class="toggle-row"><span>Multi-College Mode</span><label class="toggle"><input type="checkbox" checked /><span class="slider-t"></span></label></div>
+              <div class="toggle-row"><span>Export Allowed</span><label class="toggle"><input type="checkbox" checked /><span class="slider-t"></span></label></div>
+              <div class="toggle-row"><span>Sound Alerts</span><label class="toggle"><input type="checkbox" checked id="sound-toggle-admin" /></label></div>
+              <div class="toggle-row"><span>Maintenance Mode</span><label class="toggle"><input type="checkbox" /><span class="slider-t"></span></label></div>
+            </div>
+            <div class="card-header mt"><span>Theme</span></div>
+            <button class="btn-outline full-width" onclick="toggleTheme()"><i class="fas fa-palette"></i> Toggle Dark/Light Mode</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+
+<!-- ════ MODALS ════ -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeModal()">
+  <div class="modal-box glass-card" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Print-only token section -->
+<div id="print-token-area" class="print-only">
+  <div class="print-header">
+    <div class="print-logo">QueuePro</div>
+    <div class="print-college" id="print-college">IIT Delhi</div>
+  </div>
+  <div class="print-token-num" id="print-token-num">T-0049</div>
+  <div class="print-service" id="print-service">Examination Form</div>
+  <div class="print-details">
+    <div><span>Date:</span><strong id="print-date">-</strong></div>
+    <div><span>Time:</span><strong id="print-time">10:00 AM</strong></div>
+    <div><span>Counter:</span><strong>C-3</strong></div>
+  </div>
+  <div class="print-footer">Show this at the counter • QueuePro System</div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
